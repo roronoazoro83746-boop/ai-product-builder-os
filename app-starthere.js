@@ -1,16 +1,16 @@
 // app-starthere.js — Clean Start Here wiring (loads last, no conflicts)
 
 // Extend the router in app-part1.js
-const _baseNavigate = navigate;
-function navigate(page) {
+const _baseNavigate = window.navigate || navigate;
+window.navigate = function(page) {
   if (page === 'starthere') {
     currentPage = 'starthere';
     document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === 'starthere'));
-    renderStartHere(document.getElementById('main-content'));
+    if (typeof renderStartHere === 'function') renderStartHere(document.getElementById('main-content'));
     return;
   }
   _baseNavigate(page);
-}
+};
 
 // Re-render sidebar with Start Here added at top
 function renderSidebar() {
@@ -52,6 +52,8 @@ function renderSidebar() {
 
 // Boot into Start Here on load
 document.addEventListener('DOMContentLoaded', () => {
+  if (window.appBooted) return;
+  window.appBooted = true;
   renderSidebar();
   navigate('starthere');
 });

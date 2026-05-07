@@ -78,14 +78,14 @@ const OUTCOME_COPY = {
 };
 
 // Patch navigate to inject outcome copy into page headers
-const _origNavigate = navigate;
-function navigate(page){
+const _origNavigate = window.navigate || navigate;
+window.navigate = function(page){
   _origNavigate(page);
   setTimeout(()=>{
     const subEl = document.querySelector('.page-header-left p');
     if(subEl && OUTCOME_COPY[page]) subEl.textContent = OUTCOME_COPY[page];
   },10);
-}
+};
 
 // ── Enhanced copy-to-clipboard with visual feedback ──
 function copyPrompt(id, btn){
@@ -103,40 +103,6 @@ function copyPrompt(id, btn){
     const usageEl = document.querySelector(`[data-prompt-id="${id}"] .prompt-uses`);
     if(usageEl){ const n=parseInt(usageEl.textContent)||0; usageEl.textContent=n+1; }
   });
-}
-
-// ── Patch sidebar to add Start Here ──
-const _origRenderSidebar = renderSidebar;
-function renderSidebar(){
-  _origRenderSidebar();
-  const nav = document.querySelector('.sidebar-nav');
-  if(!nav) return;
-  const startHereDiv = document.createElement('div');
-  startHereDiv.className = 'nav-section';
-  startHereDiv.innerHTML = `
-    <div class="nav-section-title">Getting Started</div>
-    <div class="nav-item" data-page="starthere" onclick="navigate('starthere')" style="color:var(--green)">
-      <span class="icon">👋</span>Start Here
-    </div>`;
-  nav.insertBefore(startHereDiv, nav.firstChild);
-  // wire starthere page
-  const origRoutes = window._routes || {};
-  origRoutes.starthere = renderStartHere;
-  window._routes = origRoutes;
-}
-
-// Patch navigate to support starthere
-const _nav2 = navigate;
-function navigate(page){
-  if(page==='starthere'){ 
-    currentPage=page;
-    document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
-    renderStartHere(document.getElementById('main-content'));
-    const subEl = document.querySelector('.page-header-left p');
-    // already set by renderStartHere
-    return;
-  }
-  _nav2(page);
 }
 
 // Boot handled by app-starthere.js

@@ -192,4 +192,5 @@ function renderSchemas(el){
 }
 
 // ── Init ──
-document.addEventListener('DOMContentLoaded',()=>{renderSidebar();navigate('dashboard');});
+// Boot initialization has been moved to app-starthere.js to prevent duplicate rendering
+
