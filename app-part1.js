@@ -1,18 +1,67 @@
 // app-part1.js — Navigation + Dashboard + Ideas + Planner
 let currentPage='dashboard';
 
-function init(){renderSidebar();navigate('dashboard');}
-
-function navigate(page){
-  currentPage=page;
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
-  const m=document.getElementById('main-content');
-  ({dashboard:renderDashboard,ideas:renderIdeas,planner:renderPlanner,
-    prompts:renderPrompts,tasks:renderTasks,bugs:renderBugs,
-    launch:renderLaunch,monetization:renderMonetization,
-    gtm:renderGTM,schemas:renderSchemas}[page]||renderDashboard)(m);
+// Global error boundary wrapper for renderers
+function withErrorBoundary(renderFn, name) {
+  return function(el) {
+    try {
+      if (typeof renderFn === 'function') {
+        renderFn(el);
+      } else {
+        throw new Error(`${name} is not a function`);
+      }
+    } catch (e) {
+      console.error(`Error rendering ${name}:`, e);
+      el.innerHTML = `<div style="padding:40px;text-align:center;color:var(--red)"><div style="font-size:32px;margin-bottom:12px">⚠️</div><h3>Failed to load ${name}</h3><p style="font-size:12px;color:var(--text-muted);margin-top:8px">${e.message}</p></div>`;
+    }
+  };
 }
 
+const routes = {
+  dashboard: 'renderDashboard',
+  ideas: 'renderIdeas',
+  planner: 'renderPlanner',
+  prompts: 'renderPrompts',
+  tasks: 'renderTasks',
+  bugs: 'renderBugs',
+  launch: 'renderLaunch',
+  monetization: 'renderMonetization',
+  gtm: 'renderGTM',
+  schemas: 'renderSchemas',
+  starthere: 'renderStartHere' // Added explicit support for Start Here
+};
+
+// Expose navigate on window safely
+window.navigate = function(page){
+  if (!routes[page]) page = 'dashboard';
+  currentPage=page;
+  
+  document.querySelectorAll('.nav-item').forEach(n=>{
+    n.classList.toggle('active',n.dataset.page===page);
+  });
+  
+  const m=document.getElementById('main-content');
+  if (!m) return;
+  
+  const renderFnName = routes[page];
+  const renderFn = window[renderFnName];
+  
+  // Render with error boundaries
+  withErrorBoundary(renderFn, renderFnName)(m);
+  
+  // Inject outcome messaging (from app-polish)
+  setTimeout(()=>{
+    if (window.OUTCOME_COPY && window.OUTCOME_COPY[page]) {
+      const subEl = document.querySelector('.page-header-left p');
+      if(subEl) subEl.textContent = window.OUTCOME_COPY[page];
+    }
+  }, 10);
+}
+
+function init(){
+  renderSidebar();
+  navigate('dashboard');
+}
 function renderSidebar(){
   document.getElementById('sidebar').innerHTML=`
   <div class="sidebar-header">
@@ -124,15 +173,15 @@ function renderDashboard(el){
           ${d.monetization.revenue.map(r=>{
             const mx=Math.max(...d.monetization.revenue.map(x=>x.v));
             const h = (r.v/mx*100);
-            return \`
+            return `
             <div class="chart-col">
               <div class="chart-bar-container">
-                <div class="bar-premium" style="height:\${h}%">
-                  <div class="bar-val">\${fmt$(r.v)}</div>
+                <div class="bar-premium" style="height:${h}%">
+                  <div class="bar-val">${fmt$(r.v)}</div>
                 </div>
               </div>
-              <div class="chart-label">\${r.m}</div>
-            </div>\`;
+              <div class="chart-label">${r.m}</div>
+            </div>`;
           }).join('')}
         </div>
       </div>

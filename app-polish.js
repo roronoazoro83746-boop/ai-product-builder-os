@@ -77,15 +77,7 @@ const OUTCOME_COPY = {
   schemas:"Your Notion workspace, pre-designed and ready to build."
 };
 
-// Patch navigate to inject outcome copy into page headers
-const _origNavigate = window.navigate || navigate;
-window.navigate = function(page){
-  _origNavigate(page);
-  setTimeout(()=>{
-    const subEl = document.querySelector('.page-header-left p');
-    if(subEl && OUTCOME_COPY[page]) subEl.textContent = OUTCOME_COPY[page];
-  },10);
-};
+// OUTCOME_COPY injection handled by centralized router in app-part1.js
 
 // ── Enhanced copy-to-clipboard with visual feedback ──
 function copyPrompt(id, btn){
