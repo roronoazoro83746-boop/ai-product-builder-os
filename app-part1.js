@@ -54,43 +54,154 @@ function renderDashboard(el){
   const d=APP_DATA;
   const td=d.tasks.filter(t=>t.status==='Done').length,tt=d.tasks.length;
   const cd=d.launchChecklist.preLaunch.filter(c=>c.done).length,ct=d.launchChecklist.preLaunch.length;
+  const mrr=d.monetization.mrr;
+  const activeIdeas=d.ideas.filter(i=>i.status==='Building').length;
+  const launchReady=Math.round(cd/ct*100)||0;
+  
+  const sparks = () => Array.from({length: 12}, () => Math.floor(Math.random() * 70 + 30));
+  const sparklineHTML = () => `<div class="sparkline">${sparks().map(v => `<div class="spark-bar" style="height:${v}%"></div>`).join('')}</div>`;
+
   el.innerHTML=`
-  <div class="page-header"><div class="page-header-left"><h1>📊 Dashboard</h1><p>Your AI product building command center</p></div></div>
-  <div class="page-body fade-in">
-    <div class="welcome-banner">
-      <h2>Welcome back, Builder! 🚀</h2>
-      <p>${d.tasks.filter(t=>t.status==='In Progress').length} tasks in progress · ${d.bugs.filter(b=>b.status==='Open').length} open bugs · ${d.ideas.filter(i=>i.status==='Validated').length} ideas validated</p>
-    </div>
-    <div class="stats-grid">
-      <div class="stat-card"><div class="stat-label">Active Ideas</div><div class="stat-value">${d.ideas.length}</div><div class="stat-change up">↑ ${d.ideas.filter(i=>i.status==='Validated').length} validated</div></div>
-      <div class="stat-card"><div class="stat-label">Tasks Progress</div><div class="stat-value">${td}/${tt}</div><div style="margin-top:8px"><div class="progress-bar"><div class="progress-fill" style="width:${td/tt*100}%"></div></div></div></div>
-      <div class="stat-card"><div class="stat-label">Monthly Revenue</div><div class="stat-value">${fmt$(d.monetization.mrr)}</div><div class="stat-change up">↑ 50.6% MoM</div></div>
-      <div class="stat-card"><div class="stat-label">Launch Ready</div><div class="stat-value">${Math.round(cd/ct*100)}%</div><div style="margin-top:8px"><div class="progress-bar"><div class="progress-fill" style="width:${cd/ct*100}%"></div></div></div></div>
-      <div class="stat-card"><div class="stat-label">Prompt Library</div><div class="stat-value">${d.prompts.length}</div><div class="stat-change up">↑ 12 templates ready</div></div>
-      <div class="stat-card"><div class="stat-label">Open Bugs</div><div class="stat-value" style="color:var(--red)">${d.bugs.filter(b=>b.status==='Open').length}</div><div class="stat-change down">Needs attention</div></div>
-    </div>
-    <div class="grid-2" style="margin-bottom:20px">
-      <div class="card">
-        <div class="card-header"><div class="card-title">🗺️ Roadmap</div></div>
-        ${d.roadmap.map((r,i)=>`
-          <div class="roadmap-item">
-            <div class="roadmap-marker"><div class="roadmap-dot ${r.status==='Done'?'done':''}"></div>${i<d.roadmap.length-1?'<div class="roadmap-line"></div>':''}</div>
-            <div class="roadmap-content"><div class="roadmap-phase">${r.phase}</div><div class="roadmap-timeline">${r.timeline}</div><div class="roadmap-goals">${r.goals}</div></div>
-            ${badge(r.status)}
-          </div>`).join('')}
-      </div>
-      <div class="card">
-        <div class="card-header"><div class="card-title">📈 Revenue Growth</div></div>
-        <div class="chart-bars">
-          ${d.monetization.revenue.map(r=>{const mx=Math.max(...d.monetization.revenue.map(x=>x.v));return`<div class="chart-bar-wrap"><div class="chart-bar" style="height:${r.v/mx*155}px"><div class="chart-bar-value">${fmt$(r.v)}</div></div><div class="chart-bar-label">${r.m}</div></div>`;}).join('')}
+  <div class="premium-dashboard fade-in">
+    <!-- HERO SECTION -->
+    <div class="hero-glass">
+      <div class="hero-content">
+        <div>
+          <div class="hero-title">Your startup operating system.</div>
+          <div class="hero-subtitle">Welcome back, Founder. Momentum is high this week. You have ${d.tasks.filter(t=>t.status==='In Progress').length} tasks in progress.</div>
+          <div class="hero-actions">
+            <button class="btn-glass btn-glow" onclick="navigate('ideas')"><span style="font-size:16px">+</span> New Idea</button>
+            <button class="btn-glass" onclick="navigate('planner')">🚀 Launch Product</button>
+            <button class="btn-glass" onclick="navigate('prompts')">🤖 Generate Prompt</button>
+            <button class="btn-glass" onclick="navigate('monetization')">📊 View Analytics</button>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="momentum-score">87<span style="font-size:24px;color:#888;text-shadow:none">/100</span></div>
+          <div style="font-size:12px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:1.5px">Weekly Momentum</div>
         </div>
       </div>
     </div>
-    <div class="card">
-      <div class="card-header"><div class="card-title">⚡ Recent Tasks</div><button class="btn btn-ghost" onclick="navigate('tasks')">View All →</button></div>
-      <table class="data-table"><thead><tr><th>Task</th><th>Status</th><th>Priority</th><th>Due</th></tr></thead><tbody>
-      ${d.tasks.slice(0,5).map(t=>`<tr><td style="color:var(--text-primary);font-weight:500">${t.title}</td><td>${badge(t.status)}</td><td>${badge(t.priority)}</td><td style="font-size:12px">${t.dueDate||'—'}</td></tr>`).join('')}
-      </tbody></table>
+
+    <!-- ADVANCED METRICS GRID -->
+    <div class="premium-grid">
+      <div class="glass-card stat-hover">
+        <div class="stat-header"><div class="stat-title">Monthly Revenue</div><div class="stat-icon">💰</div></div>
+        <div class="stat-value">${fmt$(mrr)} <span class="stat-trend">+14%</span></div>
+        ${sparklineHTML()}
+      </div>
+      <div class="glass-card stat-hover">
+        <div class="stat-header"><div class="stat-title">Active Products</div><div class="stat-icon">🚀</div></div>
+        <div class="stat-value">${activeIdeas} <span class="stat-trend" style="background:rgba(245,158,11,0.1);color:#f59e0b">+2</span></div>
+        ${sparklineHTML()}
+      </div>
+      <div class="glass-card stat-hover">
+        <div class="stat-header"><div class="stat-title">Launch Readiness</div><div class="stat-icon">🎯</div></div>
+        <div class="stat-value">${launchReady}% <span class="stat-trend">+5%</span></div>
+        <div class="progress-bar" style="margin-top:20px;background:rgba(255,255,255,0.1);height:8px;border-radius:4px">
+          <div class="progress-fill" style="width:${launchReady}%;background:linear-gradient(90deg,var(--neon-purple),var(--neon-blue));height:100%;border-radius:4px;box-shadow:0 0 12px var(--neon-blue)"></div>
+        </div>
+      </div>
+      <div class="glass-card stat-hover">
+        <div class="stat-header"><div class="stat-title">Tasks Completed</div><div class="stat-icon">✅</div></div>
+        <div class="stat-value">${td}/${tt} <span class="stat-trend">+12</span></div>
+        ${sparklineHTML()}
+      </div>
+    </div>
+
+    <!-- MAIN LAYOUT 2 COL -->
+    <div class="layout-2-col">
+      <!-- BEAUTIFUL ANALYTICS SECTION -->
+      <div class="glass-card flex-col">
+        <div class="stat-header" style="margin-bottom:12px">
+          <div class="stat-title" style="font-size:14px;color:#fff">Revenue Growth (MRR)</div>
+          <div class="legend">
+            <span><span class="legend-dot purple"></span> Target</span>
+            <span><span class="legend-dot blue"></span> Actual</span>
+          </div>
+        </div>
+        <div class="chart-premium">
+          ${d.monetization.revenue.map(r=>{
+            const mx=Math.max(...d.monetization.revenue.map(x=>x.v));
+            const h = (r.v/mx*100);
+            return \`
+            <div class="chart-col">
+              <div class="chart-bar-container">
+                <div class="bar-premium" style="height:\${h}%">
+                  <div class="bar-val">\${fmt$(r.v)}</div>
+                </div>
+              </div>
+              <div class="chart-label">\${r.m}</div>
+            </div>\`;
+          }).join('')}
+        </div>
+      </div>
+
+      <!-- AI INSIGHTS PANEL -->
+      <div class="glass-card ai-panel">
+        <div class="ai-header">
+          <div class="ai-indicator"></div>
+          <div style="font-size:16px;font-weight:700;color:#fff">AI Founder Insights</div>
+        </div>
+        <div class="insight-list">
+          <div class="insight-item">
+            <div class="insight-title">Launch Readiness Increased</div>
+            <div class="insight-desc">You completed 5 pre-launch tasks this week. Readiness is up 14%.</div>
+          </div>
+          <div class="insight-item">
+            <div class="insight-title">Templates Outperforming</div>
+            <div class="insight-desc">Your "Feature Brainstorm" prompt has been used ${d.prompts[0]?.uses || 0} times. Highly effective.</div>
+          </div>
+          <div class="insight-item">
+            <div class="insight-title">Optimal Launch Window</div>
+            <div class="insight-desc">Historical data suggests Tuesday 10AM PST maximizes Product Hunt engagement.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="layout-2-col" style="grid-template-columns: 1fr 2fr">
+      <!-- SMART PRODUCTIVITY PANEL -->
+      <div class="glass-card flex-col" style="justify-content:center">
+        <div class="stat-header"><div class="stat-title">Shipping Velocity</div></div>
+        <svg viewBox="0 0 36 36" class="circular-chart">
+          <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+          <path class="circle circle-purple" stroke-dasharray="${launchReady}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+          <path class="circle circle-blue" stroke-dasharray="${td/tt*100}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+          <text x="18" y="21.5" class="percentage">🚀</text>
+        </svg>
+        <div style="text-align:center;margin-top:20px">
+          <div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-1px">8 Days</div>
+          <div style="font-size:12px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:1px">until target launch</div>
+        </div>
+      </div>
+
+      <!-- ACTIVITY TIMELINE -->
+      <div class="glass-card">
+        <div class="stat-header"><div class="stat-title">Live Founder Activity</div></div>
+        <div class="timeline">
+          <div class="feed-item">
+            <div class="feed-dot blue-dot"></div>
+            <div class="feed-time">Just now</div>
+            <div class="feed-content">Completed task <strong style="color:#fff">"Setup Stripe Webhooks"</strong></div>
+          </div>
+          <div class="feed-item">
+            <div class="feed-dot purple-dot"></div>
+            <div class="feed-time">2 hours ago</div>
+            <div class="feed-content">New idea <strong style="color:#fff">"AI Video Editor"</strong> scored 85. Validated.</div>
+          </div>
+          <div class="feed-item">
+            <div class="feed-dot"></div>
+            <div class="feed-time">Yesterday</div>
+            <div class="feed-content">Squashed bug <strong style="color:#fff">"OAuth login failing on Safari"</strong></div>
+          </div>
+          <div class="feed-item">
+            <div class="feed-dot green-dot"></div>
+            <div class="feed-time">2 days ago</div>
+            <div class="feed-content">Milestone reached: <strong style="color:#10b981">Crossed $5,000 MRR! 🎉</strong></div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>`;
 }
