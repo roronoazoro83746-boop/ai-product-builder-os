@@ -27,6 +27,12 @@
   <!-- Toast -->
   <div class="toast" id="toast"></div>
 
+  <script type="module">
+    import { animate, stagger, spring } from "https://esm.sh/framer-motion@11/dom";
+    window.animate = animate;
+    window.stagger = stagger;
+    window.spring = spring;
+  </script>
   <script src="data.js" defer></script>
   <script src="app-part1.js" defer></script>
   <script src="app-part2.js" defer></script>

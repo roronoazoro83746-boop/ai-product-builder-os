@@ -49,6 +49,30 @@ window.navigate = function(page){
   // Render with error boundaries
   withErrorBoundary(renderFn, renderFnName)(m);
   
+  // Trigger Framer Motion animations
+  const triggerAnimations = () => {
+    if (!window.animate) {
+      setTimeout(triggerAnimations, 50);
+      return;
+    }
+    // Animate page body
+    if (document.querySelector('.fade-in')) {
+      window.animate(".fade-in", { opacity: [0, 1], y: [10, 0] }, { duration: 0.4, easing: "ease-out" });
+    }
+    // Stagger glass cards
+    if (document.querySelectorAll('.glass-card').length > 0) {
+      window.animate(".glass-card", { opacity: [0, 1], y: [20, 0] }, { duration: 0.5, delay: window.stagger(0.05) });
+    }
+    // Stagger stat cards and table rows for slick entry
+    if (document.querySelectorAll('.stat-card').length > 0) {
+      window.animate(".stat-card", { opacity: [0, 1], scale: [0.95, 1] }, { duration: 0.4, delay: window.stagger(0.05) });
+    }
+    if (document.querySelectorAll('tr').length > 0) {
+      window.animate("tr", { opacity: [0, 1], x: [-10, 0] }, { duration: 0.3, delay: window.stagger(0.02) });
+    }
+  };
+  triggerAnimations();
+  
   // Inject outcome messaging (from app-polish)
   setTimeout(()=>{
     if (window.OUTCOME_COPY && window.OUTCOME_COPY[page]) {
